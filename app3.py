@@ -76,6 +76,10 @@ def logout():
     flash("You have logged out")
     return redirect("/login")
 
+@app.route("/setstatus")
+def setstatus():
+    return render_template("setStatus.html")
+
 app.run()
 
 #posts
