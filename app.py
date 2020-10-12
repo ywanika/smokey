@@ -18,7 +18,10 @@ def index():
         user_data = login_info.find_one({"email":email})
         if "logged_in" in user_data:
             if user_data["logged_in"] == True:
-                return render_template("index.html", name = user_data["name"], email = email)
+                if "status" in user_data:
+                    return render_template("index.html", name = user_data["name"], email = email, status = user_data["status"])
+                else:
+                    return render_template("index.html", name = user_data["name"], email = email, status = None)
             else: 
                 return redirct("/login")
         else: 
@@ -77,11 +80,17 @@ def logout():
     flash("You have logged out")
     return redirect("/login")
 
-@app.route("/setstatus")
+@app.route("/setstatus", methods=["GET", "POST"])
 def setstatus():
-    return render_template("setStatus.html")
+    email = request.args.get("email")
+    if request.method == "POST":
+        status = request.form["status"]
+        login_info.update_one({"email":email}, {"$set":{"status":status}})
+        return redirect("/?email="+email)
+    else:
+        return render_template("setStatus.html")
 
 if __name__=='__main__':
     app.run()
 
-#posts
+#posts - http://127.0.0.1:5000/?email=fire@water.com

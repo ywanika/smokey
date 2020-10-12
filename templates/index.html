@@ -31,10 +31,12 @@
 
     <div class= "jumbotron">
         <h1>Hello {{name}}</h1>
-        <h3>Status = something</h3>
+        {% if status != None %}
+        <h3>Status = {{status}}</h3>
+        {% endif %}
     </div>
     <div class= "container">
-        <a href="/setstatus">Set Status</a>
+        <a href="/setstatus?email={{email}}">Set Status</a>
         <a href="/logout?email={{email}}"><button>Log Out</button></a>
     </div>
 </body>
