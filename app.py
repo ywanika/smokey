@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, flash, redirect
 import pymongo
 import datetime
+import os
+from flask_pymongo import PyMongo
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "gguu"
-app.config['MONGO_URI']="mongodb+srv://anika_user:mongoDB123@anikasharma.eorxq.mongodb.net/smokey_user_data?retryWrites=true&w=majority"
 
-client = pymongo.MongoClient ("mongodb+srv://anika_user:mongoDB123@anikasharma.eorxq.mongodb.net/smokey_user_data?retryWrites=true&w=majority")
-database = client["smokey"]
-login_info= database["smokey_user_data"]
+app.config['MONGO_URI']= os.environ.get("MONGO_URI")
+mongo = PyMongo(app)
 
 
 @app.route("/") # / is the landing page
@@ -15,7 +15,7 @@ def index():
     email = request.args.get("email")
     print (email)
     if email is not None:
-        user_data = login_info.find_one({"email":email})
+        user_data = mongo.db.smokey_user_data.find_one({"email":email})
         if "logged_in" in user_data:
             if user_data["logged_in"] == True:
                 if "status" in user_data:
@@ -38,13 +38,13 @@ def register():
         email = request.form["email"]
         password = request.form["password"]
         confirm_password = request.form["confirm_password"]
-        user_data = login_info.find_one({"email":email})
+        user_data = mongo.db.smokey_user_data.find_one({"email":email})
         if confirm_password != password:
             flash("PASSWORDS DO NOT MATCHHHHHHHHHH")
             return redirect("/register")
         else:
             if user_data is None:
-                login_info.insert_one({"name":name, "email":email, "password":password, "registration_time":str(datetime.datetime.now())})
+                mongo.db.smokey_user_data.insert_one({"name":name, "email":email, "password":password, "registration_time":str(datetime.datetime.now())})
                 flash("Registered!")
                 return redirect("/login")
             else:
@@ -58,11 +58,14 @@ def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
-        user_data = login_info.find_one({"email":email})
+        print (email, password)
+        user_data = mongo.db.smokey_user_data.find_one({"email":email})
+        print (user_data)
         if user_data != None:
             if user_data["password"] == password:
                 flash("Sucessful login")
-                login_info.update_one({"email":email}, {"$set":{"logged_in":True}})
+                mongo.db.smokey_user_data.update_one({"email":email}, {"$set":{"logged_in":True}})
+                print ("jijiiji")
                 return redirect("/?email="+email)
             else:
                 flash("Incorrect password")
@@ -76,7 +79,7 @@ def login():
 @app.route("/logout")
 def logout():
     email = request.args.get("email")
-    login_info.update_one({"email":email}, {"$set":{"logged_in":False}})
+    mongo.db.smokey_user_data.update_one({"email":email}, {"$set":{"logged_in":False}})
     flash("You have logged out")
     return redirect("/login")
 
@@ -85,7 +88,7 @@ def setstatus():
     email = request.args.get("email")
     if request.method == "POST":
         status = request.form["status"]
-        login_info.update_one({"email":email}, {"$set":{"status":status}})
+        mongo.db.smokey_user_data.update_one({"email":email}, {"$set":{"status":status}})
         return redirect("/?email="+email)
     else:
         return render_template("setStatus.html")
