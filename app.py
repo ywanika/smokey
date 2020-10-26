@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, flash, redirect
+from flask import Flask, render_template, request, flash, redirect, session
 import pymongo
 import datetime
 import os
 from flask_pymongo import PyMongo
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "gguu"
-
 app.config['MONGO_URI']= os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 
@@ -14,19 +14,12 @@ mongo = PyMongo(app)
 def index():
     email = request.args.get("email")
     print (email)
-    if email is not None:
-        user_data = mongo.db.smokey_user_data.find_one({"email":email})
-        if "logged_in" in user_data:
-            if user_data["logged_in"] == True:
-                if "status" in user_data:
-                    return render_template("index.html", name = user_data["name"], email = email, status = user_data["status"])
-                else:
-                    return render_template("index.html", name = user_data["name"], email = email, status = None)
-            else: 
-                return redirct("/login")
-        else: 
-            flash("shoo away hacker")
-            return redirect ("/login") 
+    if "user" in session:
+        user_data = mongo.db.smokey_user_data.find_one({"email":session["user"]})
+        if "status" in user_data:
+            return render_template("index.html", name = user_data["name"], email = email, status = user_data["status"])
+        else:
+            return render_template("index.html", name = user_data["name"], email = email, status = None)
     else:
         flash("Please log in")
         return redirect("/login")
@@ -63,6 +56,7 @@ def login():
         print (user_data)
         if user_data != None:
             if user_data["password"] == password:
+                session["user"] = email
                 flash("Sucessful login")
                 mongo.db.smokey_user_data.update_one({"email":email}, {"$set":{"logged_in":True}})
                 print ("jijiiji")
@@ -79,6 +73,7 @@ def login():
 @app.route("/logout")
 def logout():
     email = request.args.get("email")
+    session.pop("user")
     mongo.db.smokey_user_data.update_one({"email":email}, {"$set":{"logged_in":False}})
     flash("You have logged out")
     return redirect("/login")
