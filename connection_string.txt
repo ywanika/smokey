@@ -1,0 +1,1 @@
+mongodb+srv://anika_user:mongoDB123@anikasharma.eorxq.mongodb.net/smokey?retryWrites=true&w=majority

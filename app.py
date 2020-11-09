@@ -6,10 +6,15 @@ from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "gguu"
-app.config['MONGO_URI']= os.environ.get("MONGO_URI")
+if os.environ.get("MONGO_URI") == None :
+    file = open("connection_string.txt","r")
+    connection_string = file.read().strip()
+    app.config['MONGO_URI']=connection_string
+else:
+    app.config['MONGO_URI']= os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 
-
+print("app has been configured")
 @app.route("/") # / is the landing page
 def index():
     email = request.args.get("email")
