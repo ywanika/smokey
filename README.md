@@ -13,4 +13,5 @@ The final webpage is deployed at [Link](http://smokeywizard.herokuapp.com). When
 ## Architecture
 
 Frontend: HTML, Bootstrap
+
 Backend: Python, Flask, Mongo DB
